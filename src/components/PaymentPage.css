@@ -1,0 +1,39 @@
+/* PaymentPage.css */
+
+/* Custom class for smoother text rendering */
+.text-smooth {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base styles for quantity buttons, ensuring they are always clean circles */
+.quantity-btn {
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; 
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.quantity-btn:disabled {
+    cursor: not-allowed;
+}
+
+/* Custom focus style for the Company/Tag input for better UX */
+.company-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4); /* Tailwind's indigo-500 equivalent focus ring */
+}
+
+/* Navigation buttons styling for clean interaction */
+.nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.2s;
+    text-align: center;
+}
+/* You can remove all the redundant CSS blocks you included in the prompt. */
