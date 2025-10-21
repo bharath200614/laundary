@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Minus, Plus, CreditCard, Home, Clock, DollarSign, QrCode } from 'lucide-react';
 import './PaymentPage.css'; 
+import { useLanguage } from "../contexts/LanguageContext";
 
 const PaymentPage = () => {
+  const { t } = useLanguage();
+  // Initialize items with pricing
   const [items, setItems] = useState([
     { id: 1, name: 'Shirt', quantity: 0, price: 10, company: '' },
     { id: 2, name: 'Pant', quantity: 0, price: 10, company: '' },
@@ -34,7 +38,26 @@ const PaymentPage = () => {
       alert('Please add items to your order');
       return;
     }
+
+    // Create payment record
+    const paymentRecord = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      items: itemList,
+      total: calculateTotal(),
+      paymentMethod,
+    };
+
+    // Get existing history from localStorage
+    const existingHistory = JSON.parse(localStorage.getItem('paymentHistory') || '[]');
+    
+    // Add new payment to history
+    localStorage.setItem('paymentHistory', JSON.stringify([paymentRecord, ...existingHistory]));
+
     alert(`Order placed!\nTotal: ₹${calculateTotal()}\nPayment: ${paymentMethod.toUpperCase()}`);
+    
+    // Reset form
+    setItems(items.map(item => ({ ...item, quantity: 0, company: '' })));
   };
 
   return (
@@ -44,7 +67,7 @@ const PaymentPage = () => {
       {/* Main Card Container */}
       <div className="max-w-3xl w-full bg-white rounded-2xl shadow-2xl p-6 md:p-10 text-smooth">
         <h1 className="text-3xl font-bold text-indigo-700 mb-6 text-center">
-          LAUNDRY PAYMENT
+          {t('laundryPayment')}
         </h1>
 
         {/* --- 1. Item List/Quantity Grid --- */}
@@ -52,11 +75,11 @@ const PaymentPage = () => {
           
           {/* Header Row */}
           <div className="grid grid-cols-4 md:grid-cols-5 gap-2 mb-3 font-semibold text-xs md:text-sm text-gray-600 border-b pb-2">
-            <div className="text-left">Item</div>
-            <div className="hidden md:block text-center">Rate (₹)</div>
-            <div className="text-center">Quantity</div>
-            <div className="text-center">Subtotal (₹)</div>
-            <div className="text-center">Tag</div>
+            <div className="text-left">{t('item')}</div>
+            <div className="hidden md:block text-center">{t('rate')}</div>
+            <div className="text-center">{t('quantity')}</div>
+            <div className="text-center">{t('subtotal')}</div>
+            <div className="text-center">{t('tag')}</div>
           </div>
 
           {/* Item Rows */}
@@ -101,7 +124,7 @@ const PaymentPage = () => {
             
             {/* Payment Method and Scan (Matches the left/center focus of the sketch) */}
             <div className="md:w-1/2 bg-white rounded-xl shadow-md p-4 border border-gray-200 text-center">
-                <h3 className="text-lg font-semibold mb-3 text-gray-800">Payment Method</h3>
+                <h3 className="text-lg font-semibold mb-3 text-gray-800">{t('paymentMethod')}</h3>
                 <div className="flex gap-3 justify-center mb-4">
                   {/* Payment Buttons (Cash/UPI) */}
                   {['cash', 'upi'].map(method => (
@@ -114,7 +137,7 @@ const PaymentPage = () => {
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`
                       }
                     >
-                      {method === 'cash' ? 'CASH 💵' : 'UPI 📱'} 
+                      {method === 'cash' ? t('cash') : t('upi')} 
                     </button>
                   ))}
                 </div>
@@ -124,13 +147,13 @@ const PaymentPage = () => {
                   onClick={handleScan} 
                   className="action-btn scan-btn flex items-center justify-center w-full px-4 py-2 rounded-lg bg-yellow-400 text-gray-800 font-bold hover:bg-yellow-500 transition shadow-md"
                 >
-                  <QrCode className="w-5 h-5 mr-2" /> SCAN
+                  <QrCode className="w-5 h-5 mr-2" /> {t('scan')}
                 </button>
             </div>
 
             {/* Total Section (Matches the right focus of the sketch) */}
             <div className="md:w-1/2 bg-indigo-50 rounded-xl shadow-md p-4 flex flex-col justify-center border border-indigo-200">
-                <span className="text-lg font-semibold text-gray-700 text-center mb-1">Total Price:</span>
+                <span className="text-lg font-semibold text-gray-700 text-center mb-1">{t('totalPrice')}</span>
                 <span className="text-5xl font-extrabold text-indigo-700 text-center tracking-wider">₹{calculateTotal()}</span>
             </div>
 
@@ -138,25 +161,24 @@ const PaymentPage = () => {
 
         {/* --- 4. Complete Payment Action --- */}
         <div className="flex justify-center mb-8">
-            <button 
-                onClick={handleSubmit} 
-                className="action-btn pay-btn flex items-center justify-center w-full max-w-sm px-6 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition shadow-lg shadow-green-300"
-            >
-                <CreditCard className="w-5 h-5 mr-2" /> Complete Payment
-            </button>
+        <button 
+        onClick={handleSubmit} 
+        className="action-btn pay-btn flex items-center justify-center w-full max-w-sm px-6 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition shadow-lg shadow-green-300"
+      >
+        <CreditCard className="w-5 h-5 mr-2" /> {t('completePayment')}
+      </button>
         </div>
 
         {/* --- 5. Navigation --- */}
         <div className="mt-4 pt-4 border-t flex justify-center gap-12">
-          {[
-            { label: 'Homepage', icon: Home },
-            { label: 'Payment History', icon: Clock }
-          ].map(nav => (
-            <button key={nav.label} className="nav-btn flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
-              <nav.icon className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">{nav.label}</span>
-            </button>
-          ))}
+          <Link to="/" className="nav-btn flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
+            <Home className="w-6 h-6 mb-1" />
+            <span className="text-sm font-medium">Homepage</span>
+          </Link>
+          <Link to="/history" className="nav-btn flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
+            <Clock className="w-6 h-6 mb-1" />
+            <span className="text-sm font-medium">Payment History</span>
+          </Link>
         </div>
       </div>
     </div>

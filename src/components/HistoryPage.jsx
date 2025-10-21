@@ -1,53 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Package, IndianRupee, Filter, Search } from 'lucide-react';
+import { useLanguage } from "../contexts/LanguageContext";
 
 const HistoryPage = () => {
-  const [orders] = useState([
-    {
-      id: 'ORD001',
-      date: '2025-09-28',
-      items: [
-        { name: 'Shirt', quantity: 3, price: 10 },
-        { name: 'Pant', quantity: 2, price: 10 }
-      ],
-      total: 50,
-      status: 'completed',
-      paymentMethod: 'UPI'
-    },
-    {
-      id: 'ORD002',
-      date: '2025-09-25',
-      items: [
-        { name: 'Saree', quantity: 1, price: 20 },
-        { name: 'Dupatta', quantity: 2, price: 10 }
-      ],
-      total: 40,
-      status: 'processing',
-      paymentMethod: 'Cash'
-    },
-    {
-      id: 'ORD003',
-      date: '2025-09-20',
-      items: [
-        { name: 'Jeans', quantity: 2, price: 15 },
-        { name: 'Shirt', quantity: 4, price: 10 }
-      ],
-      total: 70,
-      status: 'completed',
-      paymentMethod: 'UPI'
-    },
-    {
-      id: 'ORD004',
-      date: '2025-09-15',
-      items: [
-        { name: 'Kudra', quantity: 1, price: 10 },
-        { name: 'Pant', quantity: 3, price: 10 }
-      ],
-      total: 40,
-      status: 'completed',
-      paymentMethod: 'Cash'
-    }
-  ]);
+  const { t } = useLanguage();
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    const loadOrders = () => {
+      const savedHistory = JSON.parse(localStorage.getItem('paymentHistory') || '[]');
+      const processedOrders = savedHistory.map(order => ({
+        ...order,
+        status: 'completed', // All saved orders are completed
+        date: new Date(order.date).toLocaleDateString('en-IN', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      }));
+      setOrders(processedOrders);
+    };
+
+    loadOrders();
+    // Listen for storage changes
+    window.addEventListener('storage', loadOrders);
+    return () => window.removeEventListener('storage', loadOrders);
+  }, []);
 
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,7 +47,7 @@ const HistoryPage = () => {
 
   const filteredOrders = orders.filter(order => {
     const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = order.id.toString().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -78,18 +58,18 @@ const HistoryPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Order History</h1>
-          <p className="text-gray-600">Track and manage all your laundry orders</p>
-        </div>
+    {/* Header */}
+    <div className="mb-6">
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">{t('orderHistory')}</h1>
+      <p className="text-gray-600">{t('trackOrders')}</p>
+    </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Total Orders</p>
+                <p className="text-gray-600 text-sm">{t('totalOrders')}</p>
                 <p className="text-3xl font-bold text-gray-800">{orders.length}</p>
               </div>
               <Package className="w-12 h-12 text-blue-500" />
@@ -99,7 +79,7 @@ const HistoryPage = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Completed</p>
+                <p className="text-gray-600 text-sm">{t('completed')}</p>
                 <p className="text-3xl font-bold text-green-600">
                   {orders.filter(o => o.status === 'completed').length}
                 </p>
@@ -111,7 +91,7 @@ const HistoryPage = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Total Revenue</p>
+                <p className="text-gray-600 text-sm">{t('totalRevenue')}</p>
                 <p className="text-3xl font-bold text-blue-600">₹{totalRevenue}</p>
               </div>
               <IndianRupee className="w-12 h-12 text-blue-500" />
@@ -126,7 +106,7 @@ const HistoryPage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search by Order ID..."
+                placeholder={t('searchOrder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -142,7 +122,7 @@ const HistoryPage = () => {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                All
+                {t('all')}
               </button>
               <button
                 onClick={() => setFilterStatus('completed')}
@@ -152,7 +132,7 @@ const HistoryPage = () => {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Completed
+                {t('completed')}
               </button>
               <button
                 onClick={() => setFilterStatus('processing')}
@@ -162,7 +142,7 @@ const HistoryPage = () => {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Processing
+                {t('processing')}
               </button>
             </div>
           </div>
@@ -180,7 +160,7 @@ const HistoryPage = () => {
               <div key={order.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-800">Order {order.id}</h3>
+                    <h3 className="text-xl font-bold text-gray-800">Order #{order.id.toString().slice(-4)}</h3>
                     <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
                       <Calendar className="w-4 h-4" />
                       <span>{order.date}</span>
